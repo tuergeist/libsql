@@ -1,5 +1,8 @@
 # build sqld
 FROM rust:slim-bullseye AS chef
+# bullseye-security moved to archive.debian.org (packages 404 on deb.debian.org since 2026-09)
+RUN sed -i "s|http://deb.debian.org/debian-security|http://archive.debian.org/debian-security|g" /etc/apt/sources.list \
+    && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99archive
 RUN apt update \
     && apt install -y libclang-dev clang \
         build-essential tcl protobuf-compiler file \
@@ -41,6 +44,8 @@ RUN cargo build -p bottomless-cli --release --locked
 # official gosu install instruction (https://github.com/tianon/gosu/blob/master/INSTALL.md)
 FROM debian:bullseye-slim as gosu
 ENV GOSU_VERSION 1.17
+RUN sed -i "s|http://deb.debian.org/debian-security|http://archive.debian.org/debian-security|g" /etc/apt/sources.list \
+    && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99archive
 RUN set -eux; \
 # save list of currently installed packages for later so we can clean up
 	savedAptMark="$(apt-mark showmanual)"; \
@@ -71,6 +76,8 @@ RUN set -eux; \
 
 # runtime
 FROM debian:bullseye-slim
+RUN sed -i "s|http://deb.debian.org/debian-security|http://archive.debian.org/debian-security|g" /etc/apt/sources.list \
+    && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99archive
 RUN apt update
 
 EXPOSE 5001 8080
